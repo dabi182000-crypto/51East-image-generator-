@@ -195,6 +195,16 @@ export default function Studio({ configured, imageModel, outputSize, maxReferenc
     setBanner(null);
     try {
       const result = await detectCategoryRequest(sessionId);
+      // A zero-confidence answer means detection did not actually work (no
+      // vision access, unreadable reply). Say so instead of quietly switching
+      // the user to "Other Product" and rebuilding their shot list.
+      if (result.confidence <= 0) {
+        setDetection(null);
+        setBanner(
+          `Could not detect the product category automatically — pick it from the list. (${result.reasoning})`
+        );
+        return;
+      }
       setDetection({ confidence: result.confidence, reasoning: result.reasoning });
       updateSetting("category", result.category);
     } catch (error) {
@@ -249,8 +259,12 @@ export default function Studio({ configured, imageModel, outputSize, maxReferenc
   );
 
   const runOne = useCallback(
-    async (shot: ShotRequest, correctionNote?: string, identityImageId?: string) => {
-      if (!sessionId) return;
+    async (
+      shot: ShotRequest,
+      correctionNote?: string,
+      identityImageId?: string
+    ): Promise<GeneratedImageMeta | null> => {
+      if (!sessionId) return null;
       setShotState(shot.id, { status: "generating", error: undefined });
       try {
         const { image } = await generateShot({
@@ -271,8 +285,10 @@ export default function Studio({ configured, imageModel, outputSize, maxReferenc
             [shot.id]: { ...current, status: "done", result: image, history, error: undefined },
           };
         });
+        return image;
       } catch (error) {
         setShotState(shot.id, { status: "error", error: (error as Error).message });
+        return null;
       }
     },
     [sessionId, shots, settings, referencePayload, setShotState, entry]
@@ -291,16 +307,25 @@ export default function Studio({ configured, imageModel, outputSize, maxReferenc
     setStates((prev) => {
       const next = { ...prev };
       for (const shot of shots) {
-        next[shot.id] = { ...next[shot.id], status: "queued", error: undefined };
+        next[shot.id] = { ...entry(prev, shot.id), status: "queued", error: undefined };
       }
       return next;
     });
+
+    // Anchors finished in this run, keyed by shot id. Wave 2 reads them from
+    // here rather than from React state: a state update scheduled at the end
+    // of wave 1 has not necessarily been committed by the time wave 2 starts,
+    // and a missed anchor would silently drop the model-identity reference.
+    const producedInThisRun = new Map<string, GeneratedImageMeta>();
 
     try {
       // Wave 1: everything that does not need another shot's identity.
       const wave1 = shots.filter((s) => !s.identityFromShotId);
       await runWithConcurrency(
-        wave1.map((shot) => () => runOne(shot)),
+        wave1.map((shot) => async () => {
+          const image = await runOne(shot);
+          if (image) producedInThisRun.set(shot.id, image);
+        }),
         CLIENT_CONCURRENCY
       );
 
@@ -309,15 +334,16 @@ export default function Studio({ configured, imageModel, outputSize, maxReferenc
       await runWithConcurrency(
         wave2.map((shot) => async () => {
           const anchorId = shot.identityFromShotId!;
-          const anchor = statesRef.current[anchorId];
-          await runOne(shot, undefined, anchor?.result?.id);
+          const anchor =
+            producedInThisRun.get(anchorId) ?? statesRef.current[anchorId]?.result;
+          await runOne(shot, undefined, anchor?.id);
         }),
         CLIENT_CONCURRENCY
       );
     } finally {
       setRunning(false);
     }
-  }, [sessionId, running, shots, runOne]);
+  }, [sessionId, running, shots, runOne, entry]);
 
   const regenerate = useCallback(
     async (shot: ShotRequest, correctionNote?: string) => {

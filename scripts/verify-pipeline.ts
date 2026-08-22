@@ -16,7 +16,8 @@ import { processGeneratedImage, measureCornerWhiteness } from "../src/lib/image/
 import { buildPrompt } from "../src/lib/prompts";
 import { buildFileName } from "../src/lib/naming";
 import { buildPresetShots } from "../src/lib/shots";
-import { presetShots } from "../src/lib/categories";
+import { CATEGORY_DEFINITIONS, presetShots } from "../src/lib/categories";
+import { PRODUCT_CATEGORIES } from "../src/lib/types";
 import type { GenerationSettings, ReferenceImage } from "../src/lib/types";
 
 const OUT = Number(process.env.OUTPUT_SIZE ?? 1500);
@@ -159,6 +160,32 @@ async function main() {
   await test("footwear and perfume default to four product-only shots", () => {
     assert.equal(presetShots("sneakers", false).length, 4);
     assert.equal(presetShots("perfume", false).length, 4);
+  });
+
+  await test("no preset ever asks for the same shot twice", () => {
+    for (const category of PRODUCT_CATEGORIES) {
+      for (const useModel of [true, false]) {
+        const shots = presetShots(category, useModel);
+        assert.equal(
+          shots.length,
+          new Set(shots).size,
+          `${category} (useModel=${useModel}) repeats a shot: ${shots.join(", ")}`
+        );
+      }
+    }
+  });
+
+  await test("turning the model off on a model-first category keeps the image count", () => {
+    // Categories that default to product-only (shorts, swimwear) legitimately
+    // gain shots when a model is switched on; the reverse must not lose any.
+    for (const def of CATEGORY_DEFINITIONS.filter((c) => c.defaultUsesModel)) {
+      const withoutModel = presetShots(def.id, false);
+      assert.equal(
+        withoutModel.length,
+        def.defaultShots.length,
+        `${def.id}: ${def.defaultShots.length} shots with a model, ${withoutModel.length} without`
+      );
+    }
   });
 
   await test("model-back is linked to model-front for identity continuity", () => {

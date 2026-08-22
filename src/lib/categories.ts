@@ -267,6 +267,25 @@ export function categoryGroups(): Array<{ group: string; items: CategoryDefiniti
   }));
 }
 
+/** Product-only stand-in for each shot that renders a human model. */
+const PRODUCT_EQUIVALENT: Partial<Record<ShotType, ShotType>> = {
+  "model-front": "product-front",
+  "model-back": "product-back",
+  "model-three-quarter": "product-three-quarter",
+};
+
+/**
+ * Extra angles used to keep the set the same size after a substitution has
+ * collapsed two shots into one. Ordered by how useful they are on a listing.
+ */
+const FILLER_SHOTS: ShotType[] = [
+  "product-three-quarter",
+  "flat-lay",
+  "close-up",
+  "product-side",
+  "fabric-detail",
+];
+
 /** Resolve the shot preset for a category, honouring the "use model" toggle. */
 export function presetShots(id: ProductCategory, useModel: boolean): ShotType[] {
   const def = getCategory(id);
@@ -276,10 +295,17 @@ export function presetShots(id: ProductCategory, useModel: boolean): ShotType[] 
     return ["model-front", ...def.defaultShots.slice(1)] as ShotType[];
   }
   if (!useModel && def.defaultUsesModel) {
-    // Strip human shots and substitute product equivalents.
-    return def.defaultShots.map((s) =>
-      s === "model-front" ? "product-front" : s === "model-back" ? "product-back" : s
-    );
+    // Strip human shots and substitute product equivalents. A preset such as
+    // model-front + product-front collapses onto the same shot, so duplicates
+    // are dropped and the set is topped back up with a different angle — the
+    // user asked for four images, not the same image twice.
+    const substituted = def.defaultShots.map((s) => PRODUCT_EQUIVALENT[s] ?? s);
+    const unique = [...new Set(substituted)];
+    for (const filler of FILLER_SHOTS) {
+      if (unique.length >= def.defaultShots.length) break;
+      if (!unique.includes(filler)) unique.push(filler);
+    }
+    return unique;
   }
   return [...def.defaultShots];
 }

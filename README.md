@@ -276,14 +276,17 @@ npm run build
 npm start          # PORT=3000 by default
 ```
 
-The app is a standard Next.js App Router project and runs anywhere Node 20.9+ runs — Vercel, Fly, Render, Railway, a container, a VM.
+The app is a standard Next.js App Router project and runs anywhere Node 20.9+ runs — Fly, Render, Railway, a container, a VM.
 
-Two deployment notes:
+**Pick a host that runs one long-lived Node process.** Uploaded references and generated results live in that process's memory (see below), so the app wants a persistent server, not per-request serverless functions.
 
+Three deployment notes:
+
+- **Sessions are in-process.** References and results live in memory for `SESSION_TTL_MS`. That is the right trade-off for a single instance, and it is why a split-per-request serverless platform is a poor fit: `/api/upload` can store the session on one instance while `/api/generate` runs on another, and every generation then fails with *"This upload session has expired."* On such a platform, either enable sticky sessions or replace `src/lib/store.ts` with a Redis/S3/database implementation — no other module touches storage.
+- **Give image generation a long timeout.** One shot routinely takes 30–120 seconds, and a corrective retry doubles it. `/api/generate` declares `maxDuration = 300`, which needs a plan that actually permits five-minute requests — the default 10–60 second function limit on entry-level serverless tiers will cut generations off mid-flight.
 - **`sharp` is a native module.** It is already declared in `serverExternalPackages`. On Alpine images install `vips-dev`, or use a Debian-based Node image.
-- **Sessions are in-process.** References and results live in memory for `SESSION_TTL_MS`. That is the right trade-off for a single instance. For multiple instances behind a load balancer, either enable sticky sessions or replace `src/lib/store.ts` with a Redis/S3/database implementation — no other module touches storage.
 
-Generation can take a while per image, so give serverless functions a generous timeout (`/api/generate` declares `maxDuration = 300`).
+For a first deployment, a small always-on container (Railway, Render, Fly, or any VM running `npm start` behind a reverse proxy) is the least surprising choice.
 
 ---
 
