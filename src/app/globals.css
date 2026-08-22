@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink-50: #f6f7f9;
+  --color-ink-100: #eceef2;
+  --color-ink-200: #d9dde5;
+  --color-ink-300: #b9c0cd;
+  --color-ink-400: #8e98aa;
+  --color-ink-500: #6b7688;
+  --color-ink-600: #525b6b;
+  --color-ink-700: #3f4653;
+  --color-ink-800: #2a2f39;
+  --color-ink-900: #171b22;
+  --color-ink-950: #0d1015;
+
+  --color-accent-50: #eef4ff;
+  --color-accent-100: #dbe6ff;
+  --color-accent-200: #bed2ff;
+  --color-accent-500: #3b6cf6;
+  --color-accent-600: #2a55d8;
+  --color-accent-700: #2145b0;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-ink-50);
+  color: var(--color-ink-900);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The checkerboard makes it obvious when a delivered image is NOT pure white. */
+.checker {
+  background-image:
+    linear-gradient(45deg, #eef0f4 25%, transparent 25%),
+    linear-gradient(-45deg, #eef0f4 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eef0f4 75%),
+    linear-gradient(-45deg, transparent 75%, #eef0f4 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-ink-100) 0%,
+    var(--color-ink-200) 40%,
+    var(--color-ink-100) 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+  }
+}
+
+input[type="text"]:focus-visible,
+input[type="number"]:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--color-accent-500);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-300);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
