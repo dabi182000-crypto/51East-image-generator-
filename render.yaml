@@ -1,0 +1,28 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# One always-on web service. The in-memory session store needs a single
+# persistent process, so numInstances stays at 1 and autoscaling is off:
+# a second instance would serve /api/generate without the references that
+# /api/upload put in the first instance's memory.
+services:
+  - type: web
+    name: product-studio
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter          # free instances sleep and are killed mid-generation
+    region: frankfurt
+    numInstances: 1
+    healthCheckPath: /api/health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false        # set this in the Render dashboard, never in git
+      - key: OPENAI_IMAGE_MODEL
+        value: gpt-image-2
+      - key: OPENAI_VISION_MODEL
+        value: gpt-4.1-mini
+      - key: OUTPUT_SIZE
+        value: "1500"
+      - key: GENERATION_CONCURRENCY
+        value: "3"
+      - key: OPENAI_TIMEOUT_MS
+        value: "180000"

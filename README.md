@@ -19,6 +19,8 @@ The reference images are the source of truth. The engine reproduces the actual p
 - [Project structure](#project-structure)
 - [Scripts](#scripts)
 - [Production build & deployment](#production-build--deployment)
+  - [One-click: Render](#one-click-render)
+  - [Docker](#docker-anywhere-else)
 - [Security](#security)
 - [Extending](#extending)
 - [Troubleshooting](#troubleshooting)
@@ -269,6 +271,34 @@ scripts/
 ---
 
 ## Production build & deployment
+
+### One-click: Render
+
+The repo ships a [`render.yaml`](./render.yaml) blueprint — an always-on Docker
+web service, pinned to a single instance, with a health check on `/api/health`.
+
+1. Push this branch to your GitHub account (it is already there).
+2. In Render, choose **New → Blueprint** and point it at the repository.
+3. Set `OPENAI_API_KEY` in the dashboard when prompted. It is marked
+   `sync: false`, so the key is never committed to git.
+4. Deploy. Render builds the Dockerfile and gives you a URL.
+
+Stay on a paid instance type. Free instances sleep when idle and are torn down
+mid-request, which kills a generation halfway through.
+
+### Docker, anywhere else
+
+```bash
+docker build -t product-studio .
+docker run --rm -p 3000:3000 -e OPENAI_API_KEY=sk-... product-studio
+```
+
+The image is a multi-stage build on `node:22-slim`: Debian ships the glibc
+libvips binaries `sharp` expects, and the runtime stage carries only the
+standalone server output — no build toolchain, no devDependencies — running as
+an unprivileged user.
+
+### From source
 
 ```bash
 npm ci

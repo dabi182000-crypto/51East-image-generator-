@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Emits .next/standalone with a self-contained server.js and only the
+  // node_modules it actually traced — this is what the Dockerfile ships.
+  output: "standalone",
   // sharp is a native module and must not be bundled into the server build.
   serverExternalPackages: ["sharp"],
   experimental: {
