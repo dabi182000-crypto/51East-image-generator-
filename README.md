@@ -320,6 +320,23 @@ For a first deployment, a small always-on container (Railway, Render, Fly, or an
 
 ---
 
+## Also in this repository: the Product Image Formatter
+
+[`formatter/`](./formatter) is a separate, self-contained browser tool — one
+HTML file, no dependencies, no server, no API key. It reformats product photos
+you **already have**: whitens the background, fits each one onto an exact square
+canvas, applies SKU-based filenames, and hands back the batch as a ZIP.
+
+Open `formatter/index.html` and it runs. It is the right tool when a supplier
+sent usable photographs and they simply need to meet a marketplace's format
+rules; the generator above is for when you need photographs that do not exist
+yet. The two share no code and neither depends on the other.
+
+`.github/workflows/pages.yml` publishes that directory — and only that
+directory — to GitHub Pages.
+
+---
+
 ## Security
 
 - The API key is read only in `src/lib/config.ts`, which is marked `server-only`. It never reaches the browser bundle, never appears in a response, and never appears in a log line.

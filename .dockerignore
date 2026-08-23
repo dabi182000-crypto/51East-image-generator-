@@ -13,3 +13,6 @@ npm-debug.log*
 *.log
 .DS_Store
 README.md
+
+# Browser-only tool; the server image does not serve it.
+formatter
