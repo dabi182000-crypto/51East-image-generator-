@@ -159,6 +159,7 @@ button{cursor:pointer}
   color:var(--faint); font-size:15px; flex:none; display:grid; place-items:center;
 }
 .delbtn:hover{color:#fff; background:#c0413d; border-color:#c0413d}
+.delbtn.confirm{color:#fff; background:#c0413d; border-color:#c0413d; font-size:11px; font-weight:700; width:auto; padding:0 10px}
 
 .empty{
   text-align:center; padding:50px 20px; border:1px dashed var(--line); border-radius:var(--r); background:var(--surface);
@@ -220,6 +221,11 @@ var SAMPLES=[
 
 var db=null;
 var state={ brands:[], started:false };
+var armedDelete=null, armedTimer=null;
+function disarmDelete(){
+  if(armedTimer){ clearTimeout(armedTimer); armedTimer=null; }
+  if(armedDelete){ armedDelete=null; render(); }
+}
 
 function $(s){ return document.querySelector(s); }
 function esc(v){ return String(v==null?"":v).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
@@ -305,7 +311,9 @@ function rowHtml(b){
     '</div>'+
     '<div class="progwrap"><div class="bar"><i style="width:'+p+'%"></i></div>'+
       '<input class="pctinput mono" type="number" min="0" max="100" value="'+p+'" data-pct="'+esc(b.id)+'" '+(ro?"disabled":"")+' aria-label="Percent done"><span class="pct-suffix">%</span></div>'+
-    '<button class="delbtn" data-del="'+esc(b.id)+'" '+(ro?"disabled":"")+' aria-label="Remove '+esc(b.name)+'" title="Remove">✕</button>'+
+    (b.id===armedDelete
+      ? '<button class="delbtn confirm" data-del="'+esc(b.id)+'" aria-label="Confirm remove '+esc(b.name)+'" title="Click again to remove">Sure?</button>'
+      : '<button class="delbtn" data-del="'+esc(b.id)+'" '+(ro?"disabled":"")+' aria-label="Remove '+esc(b.name)+'" title="Remove">✕</button>')+
   '</div>';
 }
 
@@ -364,10 +372,19 @@ document.addEventListener("click", function(e){
     var did=el.getAttribute("data-del");
     var b=null; state.brands.forEach(function(x){ if(x.id===did) b=x; });
     if(!b || !db) return;
-    if(!window.confirm('Remove "'+b.name+'"?')) return;
-    db.doc("brands/"+did)["delete"]()["catch"](function(){ toast("Couldn't remove that."); });
+    if(armedDelete!==did){
+      armedDelete=did;
+      if(armedTimer) clearTimeout(armedTimer);
+      armedTimer=setTimeout(disarmDelete, 2800);
+      render();
+      return;
+    }
+    if(armedTimer) clearTimeout(armedTimer);
+    armedDelete=null;
+    db.doc("brands/"+did)["delete"]().then(function(){ toast("Removed."); })["catch"](function(){ toast("Couldn't remove that."); });
     return;
   }
+  if(armedDelete && !e.target.closest('[data-del="'+armedDelete+'"]')) disarmDelete();
 });
 
 document.addEventListener("input", function(e){
