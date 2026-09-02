@@ -108,12 +108,29 @@ button{cursor:pointer}
   box-shadow:var(--shadow-1);
 }
 .stripe{width:4px; align-self:stretch; border-radius:2px; background:var(--sc)}
+.namecol{display:flex; flex-direction:column; gap:0; min-width:0}
 .nameinput{
-  border:1px solid transparent; background:transparent; padding:6px 8px; border-radius:8px;
+  border:1px solid transparent; background:transparent; padding:6px 8px 2px; border-radius:8px;
   font-size:15.5px; font-weight:600; color:var(--ink); min-width:0; width:100%;
 }
 .nameinput:hover{background:var(--surface-2)}
 .nameinput:focus{outline:none; border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 3px var(--accent-wash)}
+.byline{display:flex; align-items:center; gap:3px; padding-left:8px}
+.bylabel{font-size:11.5px; color:var(--faint); flex:none}
+.byinput{
+  flex:1 1 40px; min-width:24px; border:1px solid transparent; background:transparent; padding:1px 6px; border-radius:6px;
+  font-size:11.5px; color:var(--muted); font-style:italic;
+}
+.byinput::placeholder{color:var(--faint)}
+.byinput:hover{background:var(--surface-2)}
+.byinput:focus{outline:none; border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 2px var(--accent-wash); font-style:normal}
+.seasoninput{
+  flex:none; width:64px; text-align:center; border:1px solid var(--line); background:var(--surface-2); border-radius:999px;
+  font-size:10.5px; font-weight:700; color:var(--muted); padding:2px 6px; margin-left:2px; letter-spacing:.01em;
+}
+.seasoninput::placeholder{color:var(--faint); font-weight:600}
+.seasoninput:hover{border-color:var(--muted); color:var(--ink)}
+.seasoninput:focus{outline:none; border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 2px var(--accent-wash); color:var(--ink)}
 
 .seg{display:flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; flex:none}
 .seg button{
@@ -151,7 +168,8 @@ button{cursor:pointer}
 @media (max-width:640px){
   .row{grid-template-columns:4px 1fr; grid-template-areas:"stripe name" "stripe seg" "stripe prog"; row-gap:10px}
   .stripe{grid-area:stripe}
-  .nameinput{grid-area:name; font-size:16px}
+  .namecol{grid-area:name}
+  .nameinput{font-size:16px}
   .seg{grid-area:seg; width:100%}
   .seg button{flex:1; text-align:center}
   .progwrap{grid-area:prog; justify-content:space-between; width:100%}
@@ -159,6 +177,11 @@ button{cursor:pointer}
   .top h1{font-size:19px}
 }
 </style>
+
+<datalist id="seasonList">
+  <option value="SS25"><option value="SS26"><option value="FW25"><option value="FW26">
+  <option value="Resort"><option value="Pre-Fall"><option value="Holiday"><option value="Year-round">
+</datalist>
 
 <div class="wrap">
   <div class="top">
@@ -189,10 +212,10 @@ var STAGES = [
 var STAGE={}; STAGES.forEach(function(s){ STAGE[s.id]=s; });
 
 var SAMPLES=[
-  {name:"Aurora Home",   stage:"starting", percent:10},
-  {name:"Nordvik Denim", stage:"progress", percent:55},
-  {name:"Casa Verde Ceramics", stage:"progress", percent:80},
-  {name:"Marisol Swim",  stage:"uploaded", percent:100}
+  {name:"Aurora Home",   by:"Mahmoud", season:"FW25", stage:"starting", percent:10},
+  {name:"Nordvik Denim", by:"Sara",    season:"SS26", stage:"progress", percent:55},
+  {name:"Casa Verde Ceramics", by:"Mahmoud", season:"Year-round", stage:"progress", percent:80},
+  {name:"Marisol Swim",  by:"Omar",    season:"SS26", stage:"uploaded", percent:100}
 ];
 
 var db=null;
@@ -270,7 +293,11 @@ function rowHtml(b){
   var s=STAGE[b.stage]||STAGE.starting, p=clampPct(b.percent), ro=!!b._sample;
   return '<div class="row" data-id="'+esc(b.id)+'" style="--sc:var('+s.v+')">'+
     '<div class="stripe"></div>'+
-    '<input class="nameinput" data-name="'+esc(b.id)+'" value="'+esc(b.name)+'" '+(ro?"disabled":"")+' aria-label="Brand name">'+
+    '<div class="namecol">'+
+      '<input class="nameinput" data-name="'+esc(b.id)+'" value="'+esc(b.name)+'" '+(ro?"disabled":"")+' aria-label="Brand name">'+
+      '<div class="byline"><span class="bylabel">by</span><input class="byinput" data-by="'+esc(b.id)+'" value="'+esc(b.by||"")+'" placeholder="name" '+(ro?"disabled":"")+' aria-label="Added by">'+
+        '<input class="seasoninput" list="seasonList" data-season="'+esc(b.id)+'" value="'+esc(b.season||"")+'" placeholder="season" '+(ro?"disabled":"")+' aria-label="Season"></div>'+
+    '</div>'+
     '<div class="seg" role="group" aria-label="Stage">'+
       STAGES.map(function(x){
         return '<button type="button" data-stage="'+esc(b.id)+'" data-val="'+x.id+'" class="'+(x.id===b.stage?"on":"")+'" '+(ro?"disabled":"")+'>'+esc(x.label)+'</button>';
@@ -360,9 +387,15 @@ document.addEventListener("blur", function(e){
     var name=t.value.trim();
     if(name) patch(id,{name:name}); else t.value = (function(){ var b=null; state.brands.forEach(function(x){if(x.id===id)b=x;}); return b?b.name:""; })();
   }
+  if((id=t.getAttribute&&t.getAttribute("data-by"))){
+    patch(id,{by:t.value.trim()});
+  }
+  if((id=t.getAttribute&&t.getAttribute("data-season"))){
+    patch(id,{season:t.value.trim()});
+  }
 }, true);
 document.addEventListener("keydown", function(e){
-  if(e.key==="Enter" && e.target.matches("[data-name],[data-pct]")) e.target.blur();
+  if(e.key==="Enter" && e.target.matches("[data-name],[data-pct],[data-by],[data-season]")) e.target.blur();
 });
 
 /* ---- boot ---- */

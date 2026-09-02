@@ -9,14 +9,17 @@ works on the same list — no accounts, no sign-in, just open the link.
 
 ## What it is
 
-Per brand: a name, one of three stages, and a percentage.
+Per brand: a name, who's on it, its season, one of three stages, and a
+percentage.
 
 - **Starting** — nothing done yet
 - **In progress** — being worked on
 - **Uploaded** — live on the store (jumps to 100% automatically)
 
-Click a name to rename it, click a stage button to move it, type a number to
-set the percentage. That's the whole tool.
+Click a name to rename it, click "by ..." to credit whoever's doing it,
+click the season pill to set it (SS26, FW25, Year-round...), click a stage
+button to move it, type a number to set the percentage. That's the whole
+tool.
 
 ## Adding brands
 
