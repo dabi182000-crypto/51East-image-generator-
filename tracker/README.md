@@ -1,90 +1,50 @@
 # Brand Upload Desk
 
-A live tracker for the team uploading brands to the store from Excel sheets.
-One supervisor, two upload specialists, one shared board.
+A dead-simple shared tracker for the brands going up on the store.
 
 **Live page:** https://claude.ai/code/artifact/bad6057a-bd45-4577-b4f1-bd0972e2f763
 
-Share it from the page's share menu, give the other two **edit** access, and
-everyone works on the same board.
+Share it from the page's share menu, give the team edit access, and everyone
+works on the same list — no accounts, no sign-in, just open the link.
 
-## The stages
+## What it is
 
-Each brand moves through seven stages, in order — each with its own emoji
-so the board reads at a glance:
+Per brand: a name, one of three stages, and a percentage.
 
-| # | Stage | Means |
-|---|-------|-------|
-| 01 | 🆕 New | The brand and its files have arrived. Nothing started yet. |
-| 02 | 📊 Excel sheet | Building the sheet and matching its columns to the store. |
-| 03 | 🖼️ Images | Product photos cropped, named and linked to the right rows. |
-| 04 | ✅ Ready | Sheet checked over and ready to go up. |
-| 05 | 🚀 Uploading | The import is running on the store right now. |
-| 06 | 🔍 Checking | Supervisor going through the products that went live. |
-| 07 | 🎉 Done | Live on the store and signed off. |
+- **Starting** — nothing done yet
+- **In progress** — being worked on
+- **Uploaded** — live on the store (jumps to 100% automatically)
 
-Plus **🚧 Blocked**, off to the side, for anything stuck waiting on the brand
-or on somebody else — with a field for what it is waiting on.
+Click a name to rename it, click a stage button to move it, type a number to
+set the percentage. That's the whole tool.
 
-Per brand: who's on it, urgency, due date, season (SS26, FW25, Year-round…),
-products done out of total, a six-point checklist to tick before it goes
-live, notes, and a full record of what happened. This is a status tracker —
-it doesn't hold the actual files or images, just where things stand.
+## Adding brands
 
-## Everything is one click
+Type a name in the box and hit Enter, or paste a list of names (one per
+line) to add several at once.
 
-The stage, who's on it, and how many products are done are all editable
-**straight in the list** — no need to open anything. Each row also has a
-**next step** button showing where the brand goes next (`→ Images`,
-`→ Ready`), so moving work along is a single tap. Click the row itself for
-the rest of the detail.
+## Saving
 
-The list is down to four columns — **Brand, Stage, % done, Next step** —
-with owner, category, season and due date folded into the brand row as small
-tags, so there's less to scan. The percentage done is the headline number on
-every row, not a detail you have to hunt for.
+There's no save button and no account to sign into. Every change writes
+straight to the artifact's shared database the moment you make it, and it
+shows up on everyone else's screen within a second. The "Saved
+automatically" pill at the top confirms it's connected.
 
-**Just mine** filters the board to your own brands. **What do these mean?**
-spells out every stage in plain words.
+## About "linked to GitHub"
 
-Reaching **Done** gets a little celebration toast — 🎉 it's live.
+The tracker's **code** lives in this repo (`tracker/brand-upload-tracker.html`)
+and gets deployed by publishing it as an artifact — that part is exactly
+"linked to GitHub."
 
-## How it stays live
-
-Data lives in the artifact's shared database, so a change one person makes
-appears on the other two screens within a second — no refresh, no re-sending
-the file. The top bar shows who else has it open, and a row says
-"… has this open" when a teammate is inside that brand, so two people don't
-overwrite each other. Whoever saves last wins.
-
-## Signing in with a PIN
-
-Each teammate has their own PIN. Tap your name, then enter it on the number
-pad — get it right and you're in, get it wrong and it shakes and clears for
-another go. It's remembered in your browser after that. Mahmoud (E-com
-Specialist) is set up with PIN **0152300**; set PINs for the others from the
-⚙ menu — leave a PIN blank to let that person in with just a tap.
-
-This isn't real account security — it's there so edits are correctly
-attributed, not to keep anyone out who has the link. Don't use it to protect
-anything sensitive.
-
-## Getting your brands in and out
-
-**+ Add brands** takes a paste straight out of Excel. Copy the cells and
-paste; columns are read as brand name, then how many products, then category
-(the last two optional) — set season from the row or the detail panel
-afterwards. A plain list of names works too. **Export to Excel** sends the
-whole board — filters applied, season and PIN-signed history included — back
-out as a CSV.
-
-## Views
-
-- **List** — the main table, sortable by stage, due date, recently changed,
-  least finished, or A–Z. Stacks into cards on a phone.
-- **Board** — the same brands in columns per stage, to see where work is
-  piling up.
-- **Recent changes** — every change by everyone, newest first, by day.
+The **data** (the brand list itself) is a different matter. This page runs
+in everyone's browser with no server behind it, so having it commit rows to
+GitHub on every edit would mean embedding a GitHub access token in a page
+anyone with the link can open — which would hand that token to anyone who
+looks. That's not something to build, so the data is kept in the artifact's
+own shared, auto-saving database instead. It updates live for everyone with
+the link and needs nothing to log into — functionally the same "just works,
+never lose it" outcome as auto-saving to GitHub, without shipping a
+credential to every viewer's browser.
 
 ## Changing the file
 
