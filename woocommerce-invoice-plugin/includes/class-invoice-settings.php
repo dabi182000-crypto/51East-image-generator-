@@ -26,46 +26,26 @@ class FiftyOneEast_Invoice_Settings {
 
     public function settings_tab() {
         woocommerce_admin_fields($this->get_settings());
-        $this->render_logo_field();
     }
 
-    public function enqueue_admin_scripts($hook) {
-        if ($hook !== 'woocommerce_page_wc-settings') return;
+    public function enqueue_admin_scripts() {
+        $screen = get_current_screen();
+        $is_wc_settings = (
+            (isset($_GET['page']) && $_GET['page'] === 'wc-settings') ||
+            ($screen && strpos($screen->id, 'wc-settings') !== false)
+        );
+
+        if (!$is_wc_settings) return;
         if (!isset($_GET['tab']) || $_GET['tab'] !== '51east_invoice') return;
 
         wp_enqueue_media();
         wp_enqueue_script(
             '51east-invoice-admin',
             FIFTYONE_EAST_INVOICE_URL . 'assets/js/admin-settings.js',
-            ['jquery'],
+            ['jquery', 'wp-mediaelement'],
             FIFTYONE_EAST_INVOICE_VERSION,
             true
         );
-    }
-
-    private function render_logo_field() {
-        $logo_url = self::get_logo_url();
-        ?>
-        <tr valign="top" id="_51east_invoice_logo_url_field">
-            <th scope="row" class="titledesc">
-                <label><?php esc_html_e('Company Logo', '51east-invoice'); ?></label>
-            </th>
-            <td class="forminp">
-                <input type="hidden" name="51east_invoice_logo_url" id="51east_invoice_logo_url"
-                       value="<?php echo esc_attr($logo_url); ?>">
-                <button class="button upload-logo-btn"><?php esc_html_e('Upload / Select Logo', '51east-invoice'); ?></button>
-                <?php if ($logo_url) : ?>
-                    <button class="button remove-logo-btn" style="margin-left:8px;"><?php esc_html_e('Remove', '51east-invoice'); ?></button>
-                <?php endif; ?>
-                <div class="logo-preview">
-                    <?php if ($logo_url) : ?>
-                        <img src="<?php echo esc_url($logo_url); ?>" style="max-width:200px;max-height:80px;display:block;margin-top:8px;">
-                    <?php endif; ?>
-                </div>
-                <p class="description"><?php esc_html_e('Recommended: PNG or JPG, max 400x200px.', '51east-invoice'); ?></p>
-            </td>
-        </tr>
-        <?php
     }
 
     public function update_settings() {
@@ -78,12 +58,31 @@ class FiftyOneEast_Invoice_Settings {
     }
 
     private function get_settings() {
+        $logo_url = self::get_logo_url();
+        $logo_preview = '';
+        if ($logo_url) {
+            $logo_preview = '<img src="' . esc_url($logo_url) . '" style="max-width:200px;max-height:80px;display:block;margin:8px 0;">';
+        }
+
         return [
             'section_title' => [
                 'name' => __('Invoice Settings', '51east-invoice'),
                 'type' => 'title',
                 'desc' => __('Configure your invoice details. These appear on every generated invoice.', '51east-invoice'),
                 'id'   => '51east_invoice_section_title',
+            ],
+            'logo_url' => [
+                'name'     => __('Company Logo', '51east-invoice'),
+                'type'     => 'text',
+                'id'       => '51east_invoice_logo_url',
+                'default'  => '',
+                'desc'     => $logo_preview . '<br><button type="button" class="button 51east-upload-logo-btn" style="margin-top:4px;">'
+                    . esc_html__('Upload / Select Logo', '51east-invoice') . '</button> '
+                    . '<button type="button" class="button 51east-remove-logo-btn" style="margin-top:4px;">'
+                    . esc_html__('Remove Logo', '51east-invoice') . '</button>'
+                    . '<br><small>' . esc_html__('Paste a URL or click Upload to use the Media Library. Recommended: PNG or JPG, max 400x200px.', '51east-invoice') . '</small>',
+                'desc_tip' => false,
+                'css'      => 'width: 400px;',
             ],
             'company_name_en' => [
                 'name'     => __('Company Name (English)', '51east-invoice'),

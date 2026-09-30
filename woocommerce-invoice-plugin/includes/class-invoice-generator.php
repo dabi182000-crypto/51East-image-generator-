@@ -269,7 +269,7 @@ class FiftyOneEast_Invoice_Generator {
     .totals-table {
         width: 320px;
         border-collapse: collapse;
-        <?php echo $is_rtl ? 'margin-right: 0; margin-left: auto;' : 'margin-left: auto; margin-right: 0;'; ?>
+        <?php echo $is_rtl ? 'margin-left: 0; margin-right: auto;' : 'margin-left: auto; margin-right: 0;'; ?>
     }
     .totals-table td {
         padding: 8px 12px;
@@ -329,16 +329,7 @@ class FiftyOneEast_Invoice_Generator {
     <!-- Header -->
     <div class="header">
         <?php if ($is_rtl) : ?>
-        <!-- RTL: Invoice title on RIGHT, company on LEFT -->
-        <div class="header-invoice">
-            <div class="invoice-title"><?php echo esc_html($this->labels['invoice']); ?></div>
-            <div class="invoice-meta">
-                <div><span class="label"><?php echo esc_html($this->labels['invoice_number']); ?>:</span> <?php echo esc_html($invoice_number); ?></div>
-                <div><span class="label"><?php echo esc_html($this->labels['date']); ?>:</span> <?php echo esc_html($order->get_date_created()->format('Y-m-d')); ?></div>
-                <div><span class="label"><?php echo esc_html($this->labels['order_number']); ?>:</span> <?php echo esc_html($order->get_order_number()); ?></div>
-                <div><span class="label"><?php echo esc_html($this->labels['payment_method']); ?>:</span> <?php echo esc_html($order->get_payment_method_title()); ?></div>
-            </div>
-        </div>
+        <!-- RTL: Company on LEFT (first in HTML), Invoice title on RIGHT (second in HTML) -->
         <div class="header-company">
             <?php if (!empty($settings['logo_url'])) : ?>
                 <img src="<?php echo esc_url($settings['logo_url']); ?>" class="company-logo" alt="Logo">
@@ -358,6 +349,15 @@ class FiftyOneEast_Invoice_Generator {
             <?php if (!empty($settings['tax_number'])) : ?>
                 <div class="company-details"><?php echo esc_html($this->labels['tax_number']); ?>: <?php echo esc_html($settings['tax_number']); ?></div>
             <?php endif; ?>
+        </div>
+        <div class="header-invoice">
+            <div class="invoice-title"><?php echo esc_html($this->labels['invoice']); ?></div>
+            <div class="invoice-meta">
+                <div><span class="label"><?php echo esc_html($this->labels['invoice_number']); ?>:</span> <?php echo esc_html($invoice_number); ?></div>
+                <div><span class="label"><?php echo esc_html($this->labels['date']); ?>:</span> <?php echo esc_html($order->get_date_created()->format('Y-m-d')); ?></div>
+                <div><span class="label"><?php echo esc_html($this->labels['order_number']); ?>:</span> <?php echo esc_html($order->get_order_number()); ?></div>
+                <div><span class="label"><?php echo esc_html($this->labels['payment_method']); ?>:</span> <?php echo esc_html($order->get_payment_method_title()); ?></div>
+            </div>
         </div>
         <?php else : ?>
         <!-- LTR: Company on LEFT, invoice title on RIGHT -->

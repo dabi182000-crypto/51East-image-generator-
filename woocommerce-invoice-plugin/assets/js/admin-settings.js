@@ -3,11 +3,11 @@
 
     $(function () {
         var frame;
-        var $logoField = $('#_51east_invoice_logo_url_field');
+        var $logoInput = $('#51east_invoice_logo_url');
 
-        if (!$logoField.length) return;
+        if (!$logoInput.length) return;
 
-        $logoField.on('click', '.upload-logo-btn', function (e) {
+        $(document).on('click', '.51east-upload-logo-btn', function (e) {
             e.preventDefault();
 
             if (frame) {
@@ -24,19 +24,15 @@
 
             frame.on('select', function () {
                 var attachment = frame.state().get('selection').first().toJSON();
-                $('#51east_invoice_logo_url').val(attachment.url);
-                $logoField.find('.logo-preview').html(
-                    '<img src="' + attachment.url + '" style="max-width:200px;max-height:80px;display:block;margin-top:8px;">'
-                );
+                $logoInput.val(attachment.url);
             });
 
             frame.open();
         });
 
-        $logoField.on('click', '.remove-logo-btn', function (e) {
+        $(document).on('click', '.51east-remove-logo-btn', function (e) {
             e.preventDefault();
-            $('#51east_invoice_logo_url').val('');
-            $logoField.find('.logo-preview').html('');
+            $logoInput.val('');
         });
     });
 })(jQuery);
