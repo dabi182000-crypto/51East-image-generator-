@@ -166,6 +166,13 @@ class FiftyOneEast_Invoice_Settings {
                 'desc'     => __('e.g. د.إ or ريال', '51east-invoice'),
                 'css'      => 'direction: rtl;',
             ],
+            'accent_color' => [
+                'name'     => __('Accent Color', '51east-invoice'),
+                'type'     => 'color',
+                'id'       => '51east_invoice_accent_color',
+                'default'  => '#2c3e50',
+                'desc'     => __('Header, table header, and accent color on the invoice.', '51east-invoice'),
+            ],
             'section_end' => [
                 'type' => 'sectionend',
                 'id'   => '51east_invoice_section_end',
